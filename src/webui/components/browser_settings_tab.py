@@ -1,5 +1,14 @@
 import os
-from distutils.util import strtobool
+
+def strtobool(val):
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"invalid truth value {val}")
+        
 import gradio as gr
 import logging
 from gradio.components import Component
@@ -14,6 +23,11 @@ async def close_browser(webui_manager: WebuiManager):
     Close browser
     """
     if webui_manager.bu_current_task and not webui_manager.bu_current_task.done():
+        if webui_manager.bu_agent:
+            try:
+                await webui_manager.bu_agent.stop()
+            except Exception as e:
+                logger.warning(f"Error stopping agent on browser close: {e}")
         webui_manager.bu_current_task.cancel()
         webui_manager.bu_current_task = None
 
